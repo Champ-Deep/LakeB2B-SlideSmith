@@ -18,3 +18,7 @@ output/
 # IDE
 .vscode/
 .idea/
+
+# Non-deployment assets
+Brand assets/
+lakeB2B-brand-guidelines-skill/
