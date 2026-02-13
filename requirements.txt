@@ -1,0 +1,25 @@
+# Web framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+jinja2==3.1.5
+
+# Task queue
+celery[redis]==5.4.0
+redis==5.2.1
+
+# Excel processing
+openpyxl==3.1.5
+
+# AI APIs
+anthropic==0.42.0
+httpx==0.28.1
+
+# Data & config
+pyyaml==6.0.2
+pydantic==2.10.4
+pydantic-settings==2.7.1
+
+# Utilities
+python-dotenv==1.0.1
+tenacity==9.0.0

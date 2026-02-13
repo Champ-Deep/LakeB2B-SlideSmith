@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LakeB2B SlideSmith - Pitch Deck Creator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --brand-navy: #011A6B;
+            --brand-yellow: #FFB703;
+            --brand-red: #E8033A;
+            --brand-purple: #6D08BE;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--brand-navy);
+            background-color: #F8FAFC;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .brand-gradient {
+            background: linear-gradient(90deg, #FFB703 0%, #E8033A 50%, #6D08BE 100%);
+        }
+
+        .brand-gradient-subtle {
+            background: linear-gradient(135deg, rgba(255, 183, 3, 0.1) 0%, rgba(232, 3, 58, 0.1) 50%, rgba(109, 8, 190, 0.1) 100%);
+        }
+
+        .brand-text-gradient {
+            background: linear-gradient(90deg, #FFB703 0%, #E8033A 50%, #6D08BE 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-border-gradient {
+            position: relative;
+            background: #fff;
+            background-clip: padding-box;
+            border: 2px solid transparent;
+            border-radius: 1rem;
+        }
+
+        .brand-border-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: -1;
+            margin: -2px;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #FFB703, #E8033A, #6D08BE);
+        }
+
+        .btn-hover-effect:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(232, 3, 58, 0.3);
+        }
+
+        .tab-active {
+            background: linear-gradient(90deg, #FFB703 0%, #E8033A 50%, #6D08BE 100%);
+            color: white;
+        }
+
+        .tab-inactive {
+            background: white;
+            color: #011A6B;
+            border: 2px solid #E2E8F0;
+        }
+
+        .tab-inactive:hover {
+            border-color: #E8033A;
+            color: #E8033A;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #E2E8F0;
+            border-radius: 0.75rem;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #E8033A;
+            box-shadow: 0 0 0 3px rgba(232, 3, 58, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #94A3B8;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #011A6B;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-label .required {
+            color: #E8033A;
+        }
+
+        .upload-zone {
+            border: 2px dashed #CBD5E1;
+            border-radius: 1.5rem;
+            padding: 3rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: #F8FAFC;
+        }
+
+        .upload-zone:hover, .upload-zone.drag-over {
+            border-color: #E8033A;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(232, 3, 58, 0.15);
+        }
+
+        .status-queued { background: #F1F5F9; color: #64748B; }
+        .status-researching { background: rgba(109, 8, 190, 0.1); color: #6D08BE; }
+        .status-generating_content { background: rgba(255, 183, 3, 0.15); color: #D97706; }
+        .status-creating_deck { background: rgba(232, 3, 58, 0.1); color: #E8033A; }
+        .status-complete { background: rgba(0, 214, 143, 0.12); color: #059669; }
+        .status-failed { background: rgba(255, 71, 87, 0.12); color: #DC2626; }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .progress-step-circle {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .progress-step-circle.pending {
+            background: #E2E8F0;
+            color: #64748B;
+        }
+
+        .progress-step-circle.active {
+            background: linear-gradient(90deg, #FFB703, #E8033A);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .progress-step-circle.completed {
+            background: #059669;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 brand-gradient rounded-xl flex items-center justify-center">
+                        <i data-lucide="presentation" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-extrabold text-[#011A6B]">Lake<span class="brand-text-gradient">B2B</span></h1>
+                        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">SlideSmith</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 text-sm text-slate-500">
+                    <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
+                    <span>System Ready</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-6 py-12">
+        <!-- Hero -->
+        <div class="text-center mb-12">
+            <h2 class="text-4xl lg:text-5xl font-extrabold text-[#011A6B] mb-4">
+                Create Pitch Decks <span class="brand-text-gradient">Instantly</span>
+            </h2>
+            <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+                Upload your prospect list or enter a single client. Our AI researches, writes, and designs personalized pitch decks in minutes.
+            </p>
+        </div>
+
+        <!-- Tabs -->
+        <div class="flex justify-center mb-8">
+            <div class="inline-flex bg-white rounded-full p-1 shadow-sm border border-slate-200">
+                <button id="tabBulk" onclick="switchTab('bulk')" class="px-8 py-3 rounded-full font-bold text-sm transition-all tab-active">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4 inline mr-2"></i>
+                    Bulk Upload
+                </button>
+                <button id="tabSingle" onclick="switchTab('single')" class="px-8 py-3 rounded-full font-bold text-sm transition-all tab-inactive">
+                    <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
+                    Single Client
+                </button>
+            </div>
+        </div>
+
+        <!-- Bulk Upload Section -->
+        <div id="bulkSection" class="block">
+            <!-- Upload Zone -->
+            <div class="upload-zone mb-8" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                <input type="file" id="fileInput" accept=".xlsx,.xls" class="hidden">
+                <div class="flex flex-col items-center">
+                    <div class="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4">
+                        <i data-lucide="upload-cloud" class="w-8 h-8 text-[#011A6B]"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-[#011A6B] mb-2">Drop your Excel file here</h3>
+                    <p class="text-slate-500">or click to browse · .xlsx files with Company Name column</p>
+                </div>
+                <div id="fileInfo" class="hidden mt-6 bg-white rounded-xl p-4 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 brand-gradient rounded-lg flex items-center justify-center">
+                                <i data-lucide="file-spreadsheet" class="w-5 h-5 text-white"></i>
+                            </div>
+                            <div>
+                                <p id="fileName" class="font-bold text-[#011A6B]"></p>
+                                <p id="fileSize" class="text-sm text-slate-500"></p>
+                            </div>
+                        </div>
+                        <button onclick="event.stopPropagation(); clearFile()" class="text-slate-400 hover:text-red-500">
+                            <i data-lucide="x" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Process Button -->
+            <div id="bulkProcessBtn" class="hidden text-center mb-8">
+                <button onclick="startBulkProcessing()" class="brand-gradient text-white px-10 py-4 rounded-full font-bold shadow-lg btn-hover-effect transition flex items-center mx-auto">
+                    <i data-lucide="rocket" class="mr-2 w-5 h-5"></i>
+                    Generate Pitch Decks
+                </button>
+            </div>
+
+            <!-- Bulk Progress Section -->
+            <div id="bulkProgress" class="hidden">
+                <div class="bg-white rounded-3xl border border-slate-100 shadow-lg p-8 mb-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-[#011A6B]">Processing Pipeline</h3>
+                        <div class="flex gap-6 text-sm">
+                            <span class="text-slate-500">Completed: <span id="bulkCompleted" class="font-bold text-[#011A6B]">0</span></span>
+                            <span class="text-slate-500">Failed: <span id="bulkFailed" class="font-bold text-red-500">0</span></span>
+                            <span class="text-slate-500">Total: <span id="bulkTotal" class="font-bold text-[#011A6B]">0</span></span>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="h-3 bg-slate-100 rounded-full overflow-hidden mb-8">
+                        <div id="bulkProgressBar" class="h-full brand-gradient rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+
+                    <!-- Results Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead>
+                                <tr class="border-b border-slate-100">
+                                    <th class="text-left py-3 px-4 text-xs font-bold uppercase text-slate-400">#</th>
+                                    <th class="text-left py-3 px-4 text-xs font-bold uppercase text-slate-400">Company</th>
+                                    <th class="text-left py-3 px-4 text-xs font-bold uppercase text-slate-400">Status</th>
+                                    <th class="text-left py-3 px-4 text-xs font-bold uppercase text-slate-400">Deck Link</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bulkTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Download Button -->
+                <div id="bulkDownloadBtn" class="hidden text-center">
+                    <button onclick="downloadBulkOutput()" class="bg-white text-[#011A6B] border-2 border-slate-200 px-10 py-4 rounded-xl font-bold hover:border-[#E8033A] transition flex items-center mx-auto">
+                        <i data-lucide="download" class="mr-2 w-5 h-5"></i>
+                        Download Excel with Deck Links
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Single Client Section -->
+        <div id="singleSection" class="hidden">
+            <div class="max-w-2xl mx-auto">
+                <!-- Form -->
+                <div id="singleForm" class="bg-white rounded-3xl border border-slate-100 shadow-lg p-8">
+                    <h3 class="text-xl font-bold text-[#011A6B] mb-6 flex items-center">
+                        <i data-lucide="user-plus" class="w-5 h-5 mr-2"></i>
+                        Client Information
+                    </h3>
+
+                    <form onsubmit="event.preventDefault(); startSingleProcessing()">
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="form-label">Client Name <span class="required">*</span></label>
+                                <input type="text" id="clientName" class="form-input" placeholder="John Doe" required>
+                            </div>
+                            <div>
+                                <label class="form-label">Company <span class="required">*</span></label>
+                                <input type="text" id="company" class="form-input" placeholder="Acme Corp" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="form-label">Role <span class="required">*</span></label>
+                            <input type="text" id="role" class="form-input" placeholder="VP of Sales" required>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6 mb-6">
+                            <div>
+                                <label class="form-label">LinkedIn Profile</label>
+                                <input type="url" id="linkedin" class="form-input" placeholder="https://linkedin.com/in/...">
+                            </div>
+                            <div>
+                                <label class="form-label">Email</label>
+                                <input type="email" id="email" class="form-input" placeholder="john@acmecorp.com">
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" id="phone" class="form-input" placeholder="+1 (555) 123-4567">
+                        </div>
+
+                        <div class="mb-8">
+                            <label class="form-label">Additional Notes</label>
+                            <textarea id="notes" class="form-input" rows="3" placeholder="Any specific topics or context to include..."></textarea>
+                        </div>
+
+                        <button type="submit" id="singleSubmitBtn" class="brand-gradient text-white w-full py-4 rounded-full font-bold shadow-lg btn-hover-effect transition flex items-center justify-center">
+                            <i data-lucide="sparkles" class="mr-2 w-5 h-5"></i>
+                            Generate Pitch Deck
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Single Progress -->
+                <div id="singleProgress" class="hidden">
+                    <div class="bg-white rounded-3xl border border-slate-100 shadow-lg p-8 mb-6">
+                        <div class="flex items-center justify-between mb-8">
+                            <div class="flex items-center gap-4">
+                                <div class="w-12 h-12 brand-gradient rounded-xl flex items-center justify-center">
+                                    <i data-lucide="building-2" class="w-6 h-6 text-white"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm text-slate-500">Processing</p>
+                                    <p id="singleCompanyName" class="text-xl font-bold text-[#011A6B]"></p>
+                                </div>
+                            </div>
+                            <span id="singleStatusBadge" class="px-4 py-2 rounded-full text-sm font-bold status-researching">
+                                Starting...
+                            </span>
+                        </div>
+
+                        <!-- Progress Steps -->
+                        <div class="space-y-4">
+                            <div id="step1" class="progress-step">
+                                <div class="progress-step-circle pending">1</div>
+                                <span class="text-sm font-medium">Researching Company</span>
+                            </div>
+                            <div id="step2" class="progress-step">
+                                <div class="progress-step-circle pending">2</div>
+                                <span class="text-sm font-medium">Generating Pitch Content</span>
+                            </div>
+                            <div id="step3" class="progress-step">
+                                <div class="progress-step-circle pending">3</div>
+                                <span class="text-sm font-medium">Creating Deck</span>
+                            </div>
+                        </div>
+
+                        <!-- Animated Data Bars -->
+                        <div class="mt-8 p-6 bg-[#011A6B] rounded-2xl relative overflow-hidden">
+                            <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+                            <div class="relative z-10">
+                                <p class="text-white text-sm font-semibold mb-4">Processing Status</p>
+                                <div class="space-y-3">
+                                    <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+                                        <div id="bar1" class="h-full brand-gradient rounded-full transition-all duration-500" style="width: 0%"></div>
+                                    </div>
+                                    <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+                                        <div id="bar2" class="h-full brand-gradient rounded-full opacity-60 transition-all duration-500" style="width: 0%"></div>
+                                    </div>
+                                    <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+                                        <div id="bar3" class="h-full brand-gradient rounded-full opacity-30 transition-all duration-500" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Result Card -->
+                    <div id="singleResult" class="hidden">
+                        <div class="brand-border-gradient p-8">
+                            <div class="text-center mb-6">
+                                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i data-lucide="check-circle" class="w-8 h-8 text-green-600"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold text-[#011A6B]">Pitch Deck Ready!</h3>
+                                <p id="resultCompanyName" class="text-slate-500 mt-2"></p>
+                            </div>
+                            <div class="flex gap-4 justify-center mb-6">
+                                <a id="resultDeckUrl" href="#" target="_blank" class="brand-gradient text-white px-6 py-3 rounded-full font-bold shadow-lg btn-hover-effect transition flex items-center">
+                                    <i data-lucide="external-link" class="mr-2 w-4 h-4"></i>
+                                    View Deck
+                                </a>
+                                <a id="resultPptxUrl" href="#" target="_blank" class="bg-white text-[#011A6B] border-2 border-slate-200 px-6 py-3 rounded-full font-bold hover:border-[#E8033A] transition flex items-center">
+                                    <i data-lucide="download" class="mr-2 w-4 h-4"></i>
+                                    Download PPTX
+                                </a>
+                            </div>
+                            <div class="text-center">
+                                <button onclick="resetSingleForm()" class="text-[#E8033A] font-semibold hover:underline">
+                                    Create Another Deck
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Card -->
+                    <div id="singleError" class="hidden">
+                        <div class="bg-red-50 border border-red-200 rounded-3xl p-8">
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i data-lucide="alert-circle" class="w-8 h-8 text-red-600"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-red-600 mb-2">Processing Failed</h3>
+                                <p id="errorMessage" class="text-slate-600 mb-6"></p>
+                                <button onclick="resetSingleForm()" class="bg-white text-[#011A6B] border-2 border-slate-200 px-6 py-3 rounded-full font-bold hover:border-[#E8033A] transition">
+                                    Try Again
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Tab switching
+        function switchTab(tab) {
+            const bulkTab = document.getElementById('tabBulk');
+            const singleTab = document.getElementById('tabSingle');
+            const bulkSection = document.getElementById('bulkSection');
+            const singleSection = document.getElementById('singleSection');
+
+            if (tab === 'bulk') {
+                bulkTab.className = 'px-8 py-3 rounded-full font-bold text-sm transition-all tab-active';
+                singleTab.className = 'px-8 py-3 rounded-full font-bold text-sm transition-all tab-inactive';
+                bulkSection.classList.remove('hidden');
+                singleSection.classList.add('hidden');
+            } else {
+                singleTab.className = 'px-8 py-3 rounded-full font-bold text-sm transition-all tab-active';
+                bulkTab.className = 'px-8 py-3 rounded-full font-bold text-sm transition-all tab-inactive';
+                singleSection.classList.remove('hidden');
+                bulkSection.classList.add('hidden');
+            }
+        }
+
+        // File handling
+        const fileInput = document.getElementById('fileInput');
+        const uploadZone = document.getElementById('uploadZone');
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('drag-over');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('drag-over');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelected();
+            }
+        });
+
+        fileInput.addEventListener('change', handleFileSelected);
+
+        function handleFileSelected() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = (file.size / 1024).toFixed(1) + ' KB';
+            document.getElementById('fileInfo').classList.remove('hidden');
+            document.getElementById('bulkProcessBtn').classList.remove('hidden');
+        }
+
+        function clearFile() {
+            fileInput.value = '';
+            document.getElementById('fileInfo').classList.add('hidden');
+            document.getElementById('bulkProcessBtn').classList.add('hidden');
+        }
+
+        // Bulk Processing
+        let bulkJobId = null;
+        let bulkPollInterval = null;
+
+        async function startBulkProcessing() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            const btn = document.querySelector('#bulkProcessBtn button');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="mr-2 w-5 h-5 animate-spin"></i> Uploading...';
+            lucide.createIcons();
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const resp = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    throw new Error(data.detail || 'Upload failed');
+                }
+
+                bulkJobId = data.job_id;
+                document.getElementById('bulkTotal').textContent = data.total_rows;
+
+                document.getElementById('bulkProgress').classList.remove('hidden');
+                document.getElementById('bulkProcessBtn').classList.add('hidden');
+
+                startBulkPolling();
+            } catch (err) {
+                alert(err.message);
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="rocket" class="mr-2 w-5 h-5"></i> Generate Pitch Decks';
+                lucide.createIcons();
+            }
+        }
+
+        function startBulkPolling() {
+            bulkPollInterval = setInterval(pollBulkStatus, 3000);
+            pollBulkStatus();
+        }
+
+        async function pollBulkStatus() {
+            if (!bulkJobId) return;
+
+            try {
+                const resp = await fetch(`/status/${bulkJobId}`);
+                const data = await resp.json();
+
+                document.getElementById('bulkCompleted').textContent = data.completed;
+                document.getElementById('bulkFailed').textContent = data.failed;
+
+                const percent = data.total_rows > 0 ? Math.round((data.completed + data.failed) / data.total_rows * 100) : 0;
+                document.getElementById('bulkProgressBar').style.width = percent + '%';
+
+                const tbody = document.getElementById('bulkTableBody');
+                tbody.innerHTML = '';
+
+                data.rows.forEach((row, idx) => {
+                    const statusClass = 'status-' + row.status.replace(/_/g, '-');
+                    const statusLabel = row.status.replace(/_/g, ' ');
+                    
+                    let deckLink = '—';
+                    if (row.deck_url) {
+                        deckLink = `<a href="${row.deck_url}" target="_blank" class="text-[#E8033A] font-semibold hover:underline flex items-center gap-1">
+                            <i data-lucide="external-link" class="w-3 h-3"></i> Open
+                        </a>`;
+                    } else if (row.error) {
+                        deckLink = `<span class="text-red-500 text-sm">${row.error.substring(0, 30)}...</span>`;
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="border-b border-slate-50 hover:bg-slate-50">
+                            <td class="py-3 px-4 text-slate-500">${idx + 1}</td>
+                            <td class="py-3 px-4 font-semibold text-[#011A6B]">${row.company_name}</td>
+                            <td class="py-3 px-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusClass}">${statusLabel}</span></td>
+                            <td class="py-3 px-4">${deckLink}</td>
+                        </tr>
+                    `;
+                });
+                lucide.createIcons();
+
+                if (data.status === 'complete') {
+                    clearInterval(bulkPollInterval);
+                    document.getElementById('bulkDownloadBtn').classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error('Poll error:', err);
+            }
+        }
+
+        function downloadBulkOutput() {
+            if (bulkJobId) {
+                window.location.href = `/download/${bulkJobId}`;
+            }
+        }
+
+        // Single Processing
+        let singleJobId = null;
+        let singlePollInterval = null;
+
+        async function startSingleProcessing() {
+            const clientName = document.getElementById('clientName').value.trim();
+            const company = document.getElementById('company').value.trim();
+            const role = document.getElementById('role').value.trim();
+            const linkedin = document.getElementById('linkedin').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const notes = document.getElementById('notes').value.trim();
+
+            if (!clientName || !company || !role) {
+                alert('Please fill in all required fields (Client Name, Company, Role)');
+                return;
+            }
+
+            document.getElementById('singleForm').classList.add('hidden');
+            document.getElementById('singleProgress').classList.remove('hidden');
+            document.getElementById('singleCompanyName').textContent = company;
+
+            const payload = {
+                client_name: clientName,
+                company: company,
+                role: role,
+                linkedin_url: linkedin,
+                email: email,
+                phone: phone,
+                notes: notes
+            };
+
+            try {
+                const resp = await fetch('/single', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    throw new Error(data.detail || 'Failed to start processing');
+                }
+
+                singleJobId = data.job_id;
+                startSinglePolling();
+            } catch (err) {
+                document.getElementById('singleError').classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = err.message;
+            }
+        }
+
+        function startSinglePolling() {
+            singlePollInterval = setInterval(pollSingleStatus, 2000);
+            pollSingleStatus();
+        }
+
+        async function pollSingleStatus() {
+            if (!singleJobId) return;
+
+            try {
+                const resp = await fetch(`/single/status/${singleJobId}`);
+                const data = await resp.json();
+
+                const status = data.current_stage || data.status;
+                updateSingleProgress(status);
+
+                if (data.status === 'complete') {
+                    clearInterval(singlePollInterval);
+                    showSingleResult(data);
+                } else if (data.status === 'failed') {
+                    clearInterval(singlePollInterval);
+                    document.getElementById('singleError').classList.remove('hidden');
+                    document.getElementById('errorMessage').textContent = data.error || 'Processing failed';
+                }
+            } catch (err) {
+                console.error('Poll error:', err);
+            }
+        }
+
+        function updateSingleProgress(status) {
+            const steps = [
+                { id: 'step1', bar: 'bar1', status: 'researching' },
+                { id: 'step2', bar: 'bar2', status: 'generating_content' },
+                { id: 'step3', bar: 'bar3', status: 'creating_deck' }
+            ];
+
+            let currentIndex = -1;
+            if (status === 'complete') currentIndex = 3;
+            else if (status === 'creating_deck') currentIndex = 2;
+            else if (status === 'generating_content') currentIndex = 1;
+            else if (status === 'researching') currentIndex = 0;
+
+            const statusBadge = document.getElementById('singleStatusBadge');
+            if (status === 'complete') {
+                statusBadge.className = 'px-4 py-2 rounded-full text-sm font-bold status-complete';
+                statusBadge.textContent = 'Complete';
+            } else if (status === 'failed') {
+                statusBadge.className = 'px-4 py-2 rounded-full text-sm font-bold status-failed';
+                statusBadge.textContent = 'Failed';
+            } else if (status === 'creating_deck') {
+                statusBadge.className = 'px-4 py-2 rounded-full text-sm font-bold status-creating_deck';
+                statusBadge.textContent = 'Creating Deck...';
+            } else if (status === 'generating_content') {
+                statusBadge.className = 'px-4 py-2 rounded-full text-sm font-bold status-generating_content';
+                statusBadge.textContent = 'Generating Content...';
+            } else if (status === 'researching') {
+                statusBadge.className = 'px-4 py-2 rounded-full text-sm font-bold status-researching';
+                statusBadge.textContent = 'Researching...';
+            }
+
+            steps.forEach((step, idx) => {
+                const circle = document.querySelector(`#${step.id} .progress-step-circle`);
+                const bar = document.getElementById(step.bar);
+
+                if (idx < currentIndex) {
+                    circle.className = 'progress-step-circle completed';
+                    circle.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i>';
+                    bar.style.width = '100%';
+                } else if (idx === currentIndex) {
+                    circle.className = 'progress-step-circle active';
+                    circle.textContent = idx + 1;
+                    if (idx === 0) bar.style.width = '60%';
+                    else if (idx === 1) bar.style.width = '85%';
+                    else if (idx === 2) bar.style.width = '95%';
+                } else {
+                    circle.className = 'progress-step-circle pending';
+                    circle.textContent = idx + 1;
+                    bar.style.width = '0%';
+                }
+            });
+            lucide.createIcons();
+        }
+
+        function showSingleResult(data) {
+            document.getElementById('singleProgress').classList.add('hidden');
+            document.getElementById('singleResult').classList.remove('hidden');
+            document.getElementById('resultCompanyName').textContent = data.company_name;
+
+            if (data.deck_url) {
+                document.getElementById('resultDeckUrl').href = data.deck_url;
+                document.getElementById('resultPptxUrl').href = data.pptx_url || data.deck_url;
+            }
+            lucide.createIcons();
+        }
+
+        function resetSingleForm() {
+            document.getElementById('singleForm').classList.remove('hidden');
+            document.getElementById('singleProgress').classList.add('hidden');
+            document.getElementById('singleResult').classList.add('hidden');
+            document.getElementById('singleError').classList.add('hidden');
+
+            document.getElementById('clientName').value = '';
+            document.getElementById('company').value = '';
+            document.getElementById('role').value = '';
+            document.getElementById('linkedin').value = '';
+            document.getElementById('email').value = '';
+            document.getElementById('phone').value = '';
+            document.getElementById('notes').value = '';
+
+            singleJobId = null;
+
+            ['step1', 'step2', 'step3'].forEach((id, idx) => {
+                const circle = document.querySelector(`#${id} .progress-step-circle`);
+                circle.className = 'progress-step-circle pending';
+                circle.textContent = idx + 1;
+            });
+            ['bar1', 'bar2', 'bar3'].forEach(id => {
+                document.getElementById(id).style.width = '0%';
+            });
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Environment
+.env
+
+# Upload/Output data
+uploads/
+output/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/

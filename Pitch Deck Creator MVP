@@ -1,0 +1,350 @@
+# Pitch Deck Creator: MVP Decisions
+
+**Final decisions for 1-2 week MVP implementation**  
+**Date:** February 13, 2026  
+**Decision Owner:** CEO/CMO (Sreedeep Surapaneni)
+
+***
+
+## Decision 1: Post-Generation Editing Capability
+
+**DECISION: Download-only with regeneration option**
+
+**Rationale:**
+- **MVP Speed:** Building or integrating an editor adds 3-5 days to timeline
+- **Gamma's Strength:** Users can edit natively in Gamma after download if they purchase Gamma accounts
+- **Regeneration Pattern:** If deck isn't right, user clicks "Regenerate with feedback" → provides natural language notes → system reruns with adjustments
+- **Cost Control:** No need to implement complex edit state management or version control
+
+**Implementation:**
+- Preview page shows embedded Gamma deck (read-only iframe)
+- Action buttons:
+  - **Download PPTX** (primary CTA)
+  - **Download PDF** (secondary)
+  - **Share Link** (Gamma view-only URL)
+  - **Regenerate** (opens modal: "What would you like to change?" → text input → reruns job with additional context)
+- Feedback input stored in job metadata, appended to Claude prompts on regeneration
+
+**User Flow:**
+1. User previews deck
+2. If satisfied → Downloads PPTX
+3. If not satisfied → Clicks "Regenerate" → Types: "Make slide 4 more data-driven, add ROI chart on slide 7"
+4. System regenerates with feedback as additional context in content generation prompts
+5. New version ready in ~3 minutes
+
+**Post-MVP:** Integrate Gamma's AI Agent API (if they expose it) for in-place edits without regeneration
+
+***
+
+## Decision 2: Service Catalog Creation
+
+**DECISION: User manually creates YAML with 8-12 core services**
+
+**Rationale:**
+- **Quality Control:** LakeB2B services require nuanced positioning that AI scraping won't capture accurately
+- **One-Time Cost:** 2-3 hours to write comprehensive service catalog, then it's done
+- **Flexibility:** User controls exact messaging, pain point mappings, and ROI claims
+- **No Scraping Risk:** Website scraping is brittle (site changes break system), may miss internal services not listed publicly
+
+**Implementation:**
+- CEO/CMO (you) writes `services_catalog.yaml` following Section 2 schema
+- File stored in `/data/services_catalog.yaml` in repo
+- System loads catalog at startup, caches in memory
+- **8-12 services for MVP** (not all 15-20):
+  - Custom B2B Data Enrichment ✓
+  - Tech Stack Intelligence ✓
+  - Intent Data Platform ✓
+  - Custom AI Agent Development ✓
+  - Predictive Lead Scoring ✓
+  - SDR Training Bootcamp ✓
+  - GTM Playbook Consulting ✓
+  - ABM Campaign Execution ✓
+  - Demand Gen as a Service ✓
+  - (3 more if needed)
+
+**Time Investment:**
+- **Day 0 (before dev starts):** You spend 2-3 hours filling out `services_catalog.yaml` template provided in Section 2
+- **Validation:** Claude Code reviews for completeness (all required fields present)
+
+**Future Enhancement (Month 2):**
+- Build admin UI for service catalog editing (add/edit/archive services)
+- Version control for catalog changes
+- A/B test different service descriptions
+
+***
+
+## Decision 3: Pain Point Discovery Slide
+
+**DECISION: Static visual layout with 3 options, non-interactive (with smart speaker notes)**
+
+**Rationale:**
+- **Gamma API Limitation:** Unclear if Gamma Pro API supports true interactivity (clickable branching)
+- **Presentation Reality:** Most pitch decks are delivered as downloads or screenshares, not interactive web experiences
+- **Workaround via Speaker Notes:** Include all 3 pain point paths in deck, use speaker notes to guide presenter on which slides to emphasize based on prospect's selection
+
+**Implementation:**
+
+**Slide 3 Structure:**
+```
+Headline: "Which Challenge Resonates Most with Your Team?"
+
+Body (3 visually distinct boxes):
+┌─────────────────────────┐
+│ A. CRM Data Quality     │
+│ 60% outdated, low       │
+│ deliverability          │
+└─────────────────────────┘
+
+┌─────────────────────────┐
+│ B. SDR Productivity     │
+│ 10 hrs/week on manual   │
+│ research                │
+└─────────────────────────┘
+
+┌─────────────────────────┐
+│ C. Intent Blind Spots   │
+│ No visibility into      │
+│ buyer signals           │
+└─────────────────────────┘
+
+Speaker Notes: "PAUSE HERE. Ask prospect: 'Which resonates most?' 
+- If A: Focus on slides 4-6 (data enrichment)
+- If B: Emphasize slides 7-9 (productivity gains)  
+- If C: Highlight slides 10-12 (intent data)
+All paths included—tailor emphasis to their answer."
+```
+
+**Deck Architecture:**
+- Slide 3: Pain point selection (visual only)
+- Slides 4-6: Deep dive on Pain Point A + Solution
+- Slides 7-9: Deep dive on Pain Point B + Solution
+- Slides 10-12: Deep dive on Pain Point C + Solution
+- Slides 13-14: ROI summary (covers all 3 scenarios)
+- Slide 15: Next steps
+
+**Total Deck Length:** 15-16 slides (comprehensive but presenter picks path)
+
+**Benefit:** Works perfectly for async delivery (prospect downloads deck, reads relevant sections) AND live presentation (presenter adapts on the fly)
+
+**Post-MVP:** If Gamma releases interactive API features, retrofit with true clickable branching
+
+***
+
+## Decision 4: Branding Application
+
+**DECISION: Use Gamma's default "Professional" theme with LakeB2B color override**
+
+**Rationale:**
+- **Speed:** No brand kit upload UI, no asset management
+- **Gamma's Design Quality:** Professional theme is clean and modern
+- **Color Control:** Gamma API accepts `primaryColor` and `secondaryColor` hex codes—sufficient for MVP brand consistency
+- **Logo Limitation Acceptable:** Gamma may not perfectly place logo on every slide, but title slide logo is enough for MVP
+
+**Implementation:**
+
+**Gamma API Branding Block:**
+```json
+{
+  "theme": "professional",
+  "branding": {
+    "primaryColor": "#00A9E0",      // LakeB2B blue (use on CTA buttons, accents)
+    "secondaryColor": "#1A1A1A",    // Dark gray for text
+    "logoUrl": "https://lakeb2b.com/assets/logo-horizontal-white-bg.png"
+  }
+}
+```
+
+**Hardcoded Brand Assets:**
+- Store LakeB2B logo URL in environment variable: `LAKEB2B_LOGO_URL`
+- Colors hardcoded in API call (no user input needed)
+- Fonts: Rely on Gamma's default (likely Inter or similar sans-serif)
+
+**Quality Check:**
+- Generate 3 test decks during UAT
+- Verify logo appears on title slide
+- Verify colors are consistently applied
+- If Gamma's placement is unacceptable → **Fallback:** Add logo as image element on slide 1 manually in API call
+
+**Post-MVP (Phase 2):**
+- Build Google Slides API integration for pixel-perfect brand control
+- Allow upload of custom brand kit (colors, fonts, logo variations, slide templates)
+
+***
+
+## Decision 5: Authentication & Access Control
+
+**DECISION: Email/password login with LakeB2B domain whitelist**
+
+**Rationale:**
+- **Security:** Can't be fully open (cost abuse risk—someone runs 1,000 generations)
+- **Simplicity:** Email/password is faster to implement than SSO (no Okta/Azure AD integration)
+- **Flexibility:** Can grant access to partners, resellers, or Champions Group entities beyond @lakeb2b.com
+- **Cost Tracking:** Each user account = trackable usage for billing/analytics
+
+**Implementation:**
+
+**Auth Stack:**
+- **Library:** Clerk.dev (fastest Next.js auth integration, 5-10 users free tier)
+- **Alternative:** Auth.js (formerly NextAuth) if you want self-hosted
+
+**Access Control:**
+```typescript
+// Whitelist check after signup
+const ALLOWED_DOMAINS = [
+  'lakeb2b.com',
+  'championsgroup.com',
+  'ampliz.com',
+  'championclub.in'
+];
+
+async function validateUser(email: string) {
+  const domain = email.split('@')[1];
+  if (!ALLOWED_DOMAINS.includes(domain)) {
+    throw new Error('Access restricted to LakeB2B and Champions Group employees');
+  }
+  return true;
+}
+```
+
+**User Flow:**
+1. User visits pitch-deck-creator.lakeb2b.com
+2. Lands on login page
+3. Options:
+   - **Sign up** (email + password) → Email verification sent
+   - **Log in** (existing users)
+4. After signup, system checks email domain:
+   - If whitelisted → Account activated
+   - If not whitelisted → "Access denied. Contact admin@lakeb2b.com for access."
+5. Once logged in → Access to deck creator
+
+**Admin Control:**
+- You (CEO) can manually add non-whitelisted emails via Clerk dashboard (for partners)
+- Usage dashboard shows per-user deck generation count
+
+**Cost:**
+- Clerk free tier: 5,000 monthly active users (plenty for MVP)
+- If exceeded: $25/month for 10,000 MAU
+
+**Post-MVP:**
+- Add usage limits (e.g., 50 decks/user/month)
+- Implement role-based access (Admin can edit service catalog, AEs can only generate)
+
+***
+
+## Decision 6: Research Depth Execution Model
+
+**DECISION: Adaptive research depth based on data availability**
+
+**Rationale:**
+- **Cost Optimization:** Deep Research for every prospect is overkill—costs $0.50-0.75 per query set
+- **Quality Preservation:** Simple/well-known companies (e.g., "Salesforce") need less research than obscure mid-market companies
+- **User Experience:** Users shouldn't have to choose—system should be smart enough to adapt
+- **Speed:** Quick research = 30-40s, Deep research = 60-90s. Faster when possible improves UX.
+
+**Implementation Logic:**
+
+```typescript
+function determineResearchDepth(input: {
+  companyName: string;
+  companyUrl?: string;
+  uploadedFiles: File[];
+  industryKnown: boolean;
+}): 'quick' | 'deep' {
+  
+  // Rule 1: User uploaded research files → Quick (files provide context)
+  if (input.uploadedFiles.length > 0) {
+    return 'quick'; // Perplexity supplements, doesn't need to go deep
+  }
+  
+  // Rule 2: Well-known public company → Quick
+  const publicCompanyList = ['Salesforce', 'Snowflake', 'HubSpot', 'Adobe', 
+                             'Oracle', 'SAP', 'Microsoft', /* ... Fortune 1000 */];
+  if (publicCompanyList.includes(input.companyName)) {
+    return 'quick'; // Plenty of public info available, standard queries suffice
+  }
+  
+  // Rule 3: Industry known + URL provided → Quick
+  if (input.industryKnown && input.companyUrl) {
+    return 'quick'; // Enough context to build solid pitch
+  }
+  
+  // Rule 4: Obscure company / missing data → Deep
+  return 'deep'; // Need comprehensive research to fill gaps
+}
+```
+
+**Research Configuration:**
+
+**Quick Research (30-40s, $0.25-0.35 cost):**
+- Perplexity model: `sonar` (standard, not pro)
+- Search depth: `standard`
+- Queries: 3 (Company Overview, Tech Stack, Pain Points merged into one broad query)
+
+**Deep Research (60-90s, $0.50-0.75 cost):**
+- Perplexity model: `sonar-pro`
+- Search depth: `deep`
+- Queries: 5 (Company Overview, Tech Stack, Pain Points, Competitive Landscape, Buyer Personas—separate detailed queries)
+
+**User Feedback:**
+- Progress indicator shows: "Running comprehensive research..." (if deep) or "Researching {Company}..." (if quick)
+- No explicit mention of "quick vs deep" to user—system just works
+
+**Cost Impact:**
+- **Scenario 1:** 100 decks/month, 60% quick (avg $0.30) + 40% deep (avg $0.65)
+  - Cost: (60 × $0.30) + (40 × $0.65) = $18 + $26 = **$44/month on Perplexity**
+- **Scenario 2:** All deep research: 100 × $0.65 = **$65/month**
+- **Savings:** $21/month (32% reduction) without sacrificing quality
+
+**Monitoring:**
+- Log research depth decision for each job
+- After 50 decks, analyze: Are "quick" decks rated lower than "deep" decks?
+- If quality gap detected → Adjust rules to trigger "deep" more often
+
+**Post-MVP:**
+- Add "Force Deep Research" toggle for power users who want maximum detail
+- ML model to predict research depth based on deck quality feedback
+
+***
+
+## Implementation Priority Summary
+
+**Sequence for Claude Code:**
+
+1. **Day 0 (Pre-Dev):** You (user) write `services_catalog.yaml` with 8-12 services
+2. **Day 1:** Set up Next.js project, Clerk auth, whitelist logic
+3. **Day 2:** Implement Perplexity integration with adaptive research depth logic
+4. **Day 3:** Implement Claude Opus service mapping + Claude Sonnet content generation
+5. **Day 4:** Implement Gamma API integration (hardcoded branding, static pain point slide)
+6. **Day 5:** Build web UI (upload Excel, progress tracking, preview page with download buttons)
+7. **Day 6:** Build regeneration flow (feedback input → re-run with context)
+8. **Day 7:** End-to-end testing, deploy to Vercel
+9. **Day 8-10:** UAT with 3-5 AEs, iterate on prompts based on feedback
+
+**Hard Decisions Made. Zero Ambiguity. Ready for Implementation.**
+
+***
+
+## Final MVP Feature Checklist
+
+✅ **Included in MVP:**
+- Email/password auth with domain whitelist
+- Excel upload (Company Name, Industry, URL columns)
+- Adaptive research depth (quick vs deep, auto-selected)
+- Service mapping (8-12 hardcoded services from YAML)
+- NotebookLM-quality content generation
+- Gamma API presentation (hardcoded LakeB2B branding)
+- Static pain point discovery slide (3 options, non-interactive)
+- Download PPTX/PDF
+- Regeneration with feedback
+- Basic usage tracking (decks generated per user)
+
+❌ **Explicitly Deferred to Post-MVP:**
+- In-deck editing (use native Gamma or regenerate)
+- Interactive pain point branching (Gamma API limitations)
+- Custom brand kit upload
+- n8n automation workflows
+- CRM integration
+- NotebookLM explanation layer
+- Google Slides API fallback
+- Multi-language support
+- Advanced analytics (view tracking, A/B testing)

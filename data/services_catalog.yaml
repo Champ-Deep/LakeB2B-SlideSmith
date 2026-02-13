@@ -1,0 +1,239 @@
+# LakeB2B Service Catalog
+# ========================
+# Fill in each service with accurate descriptions and metrics.
+# The system uses this to match services to prospect pain points.
+
+services:
+  - id: data-enrichment
+    name: "Custom B2B Data Enrichment"
+    tagline: "Clean, Current, Complete Contact Data"
+    description: >
+      LakeB2B's data enrichment platform validates, cleanses, and appends missing
+      fields to your existing CRM and marketing database. With access to 200M+
+      verified B2B contacts, we ensure your outreach targets real decision-makers
+      with accurate email, phone, title, and firmographic data.
+    pain_points_addressed:
+      - "Outdated CRM data causing low deliverability"
+      - "Missing decision-maker contacts"
+      - "Poor data quality impacting campaign ROI"
+      - "High email bounce rates"
+    ideal_for_industries:
+      - "SaaS"
+      - "FinTech"
+      - "Healthcare"
+      - "Manufacturing"
+      - "Technology"
+    roi_metrics:
+      - "40% improvement in email deliverability"
+      - "3x increase in qualified pipeline"
+      - "60% reduction in data decay impact"
+    key_differentiators:
+      - "200M+ verified B2B contacts"
+      - "Real-time data validation"
+      - "GDPR and CCPA compliant"
+      - "Custom enrichment fields"
+
+  - id: tech-intelligence
+    name: "Tech Stack Intelligence"
+    tagline: "Know Your Prospect's Technology Before the Call"
+    description: >
+      Identify the exact technology stack your prospects are using — from CRM and
+      marketing automation to cloud infrastructure and analytics. Target companies
+      based on technology adoption, migration signals, and integration gaps.
+    pain_points_addressed:
+      - "No visibility into prospect tech stack"
+      - "Wasted demos on wrong-fit companies"
+      - "Inaccurate technographic data"
+    ideal_for_industries:
+      - "SaaS"
+      - "Technology"
+      - "Cloud Services"
+      - "Cybersecurity"
+    roi_metrics:
+      - "35% higher win rate with tech-targeted outreach"
+      - "50% reduction in unqualified demos"
+    key_differentiators:
+      - "Tracks 30,000+ technologies"
+      - "Real-time install/uninstall signals"
+      - "Competitive displacement alerts"
+
+  - id: intent-data
+    name: "Intent Data Platform"
+    tagline: "Catch Buyers Before They Catch Your Competitor"
+    description: >
+      LakeB2B's intent data platform identifies companies actively researching
+      topics related to your solutions. Surface in-market buyers based on content
+      consumption signals, search behavior, and engagement patterns across the web.
+    pain_points_addressed:
+      - "No visibility into buyer intent signals"
+      - "Cold outreach with low conversion"
+      - "Inability to prioritize accounts by readiness"
+      - "Missed in-market opportunities"
+    ideal_for_industries:
+      - "SaaS"
+      - "FinTech"
+      - "Enterprise Software"
+      - "Consulting"
+    roi_metrics:
+      - "4x increase in response rates to intent-triggered outreach"
+      - "28% shorter sales cycles"
+      - "3x more pipeline from intent-driven ABM"
+    key_differentiators:
+      - "Billions of buying signals processed weekly"
+      - "Topic-level intent scoring"
+      - "CRM and MAP native integrations"
+
+  - id: ai-agent-development
+    name: "Custom AI Agent Development"
+    tagline: "AI-Powered Automation for Your Sales & Marketing"
+    description: >
+      We build custom AI agents tailored to your GTM workflows — from automated
+      lead qualification and personalized outreach to intelligent chatbots and
+      predictive analytics. Purpose-built on your data, integrated with your stack.
+    pain_points_addressed:
+      - "Manual, repetitive sales processes"
+      - "Inability to scale personalized outreach"
+      - "Slow response times to inbound leads"
+      - "Need for AI but lack of in-house ML talent"
+    ideal_for_industries:
+      - "SaaS"
+      - "Financial Services"
+      - "Healthcare"
+      - "Real Estate"
+      - "Technology"
+    roi_metrics:
+      - "70% reduction in manual lead qualification time"
+      - "5x faster response to inbound inquiries"
+      - "40% increase in SDR productivity"
+    key_differentiators:
+      - "Custom-built, not off-the-shelf"
+      - "Integrates with your existing CRM/MAP"
+      - "Continuously learns from your data"
+
+  - id: predictive-lead-scoring
+    name: "Predictive Lead Scoring"
+    tagline: "Stop Guessing, Start Prioritizing"
+    description: >
+      Replace rule-based lead scoring with AI-driven predictive models that analyze
+      hundreds of data points to rank your leads by conversion probability. Focus
+      your team on the prospects most likely to buy.
+    pain_points_addressed:
+      - "Inaccurate lead scoring causing wasted SDR time"
+      - "Sales and marketing misalignment on lead quality"
+      - "Low conversion rates from MQL to SQL"
+    ideal_for_industries:
+      - "SaaS"
+      - "FinTech"
+      - "Enterprise Technology"
+      - "Professional Services"
+    roi_metrics:
+      - "45% improvement in MQL-to-SQL conversion"
+      - "30% reduction in sales cycle length"
+      - "2x more revenue per rep"
+    key_differentiators:
+      - "ML models trained on your historical data"
+      - "Multi-signal scoring (firmographic + behavioral + intent)"
+      - "Real-time score updates"
+
+  - id: sdr-training
+    name: "SDR Training Bootcamp"
+    tagline: "Build a World-Class Inside Sales Team"
+    description: >
+      Intensive SDR training program combining data-driven prospecting techniques,
+      multi-channel outreach strategies, and real-world practice. Used by 500+
+      companies. Available as live, virtual, or self-paced formats.
+    pain_points_addressed:
+      - "Low SDR productivity and ramp time"
+      - "Inconsistent messaging across the team"
+      - "High SDR turnover due to poor enablement"
+      - "Manual research consuming 10+ hrs/week per rep"
+    ideal_for_industries:
+      - "SaaS"
+      - "Technology"
+      - "Professional Services"
+      - "Staffing"
+    roi_metrics:
+      - "50% reduction in SDR ramp time"
+      - "3x increase in meetings booked per rep"
+      - "40% improvement in email response rates"
+    key_differentiators:
+      - "Data-first methodology"
+      - "Hands-on practice with real prospect lists"
+      - "Post-bootcamp coaching included"
+
+  - id: gtm-playbook
+    name: "GTM Playbook Consulting"
+    tagline: "From Strategy to Execution in 30 Days"
+    description: >
+      Our GTM consultants build custom go-to-market playbooks that align your ICP,
+      messaging, channels, and tech stack. Includes TAM analysis, competitive
+      positioning, and 90-day execution roadmap.
+    pain_points_addressed:
+      - "No clear go-to-market strategy"
+      - "Misalignment between product, marketing, and sales"
+      - "Entering new markets without data-driven approach"
+    ideal_for_industries:
+      - "SaaS"
+      - "FinTech"
+      - "Healthcare IT"
+      - "Enterprise Software"
+    roi_metrics:
+      - "Defined ICP and TAM within 2 weeks"
+      - "Unified messaging across all channels"
+      - "30% faster market entry"
+    key_differentiators:
+      - "Data-backed ICP definition"
+      - "Proprietary TAM sizing methodology"
+      - "Includes execution support, not just strategy"
+
+  - id: abm-campaigns
+    name: "ABM Campaign Execution"
+    tagline: "Precision Targeting, Maximum Impact"
+    description: >
+      End-to-end account-based marketing campaign execution. We identify your
+      highest-value targets, build multi-channel campaigns (email, display, LinkedIn,
+      direct mail), and provide full reporting on engagement and pipeline influence.
+    pain_points_addressed:
+      - "Spray-and-pray marketing with low ROI"
+      - "Inability to execute ABM at scale"
+      - "Lack of multi-channel campaign orchestration"
+      - "No account-level engagement visibility"
+    ideal_for_industries:
+      - "Enterprise Software"
+      - "FinTech"
+      - "Cybersecurity"
+      - "Cloud Infrastructure"
+    roi_metrics:
+      - "5x higher engagement than broad campaigns"
+      - "3x pipeline influence from target accounts"
+      - "42% higher deal sizes from ABM-influenced opportunities"
+    key_differentiators:
+      - "True multi-channel orchestration"
+      - "Built on LakeB2B intent + contact data"
+      - "Full-funnel attribution reporting"
+
+  - id: demand-gen
+    name: "Demand Gen as a Service"
+    tagline: "Your Outsourced Demand Generation Engine"
+    description: >
+      Full-service demand generation combining content syndication, webinar
+      management, email nurture, and lead qualification. We generate marketing-
+      qualified leads at a guaranteed cost-per-lead, delivered directly to your CRM.
+    pain_points_addressed:
+      - "Inconsistent lead flow"
+      - "High cost per lead from current channels"
+      - "Inability to scale demand generation in-house"
+      - "No guaranteed lead quality or volume"
+    ideal_for_industries:
+      - "SaaS"
+      - "Technology"
+      - "Professional Services"
+      - "Manufacturing"
+    roi_metrics:
+      - "50% lower cost-per-lead vs industry average"
+      - "80%+ lead-to-MQL qualification rate"
+      - "Guaranteed lead volume per quarter"
+    key_differentiators:
+      - "Performance-based pricing available"
+      - "Multi-touch nurture included"
+      - "Dedicated campaign manager"
