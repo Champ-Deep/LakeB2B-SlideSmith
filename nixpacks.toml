@@ -1,2 +1,5 @@
+[variables]
+NIXPACKS_PATH = "/opt/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
 [start]
 cmd = "bash start.sh"
