@@ -8,6 +8,17 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
+# ── Job / Row Status ─────────────────────────────────────────────────────────
+
+class RowStatus(str, Enum):
+    QUEUED = "queued"
+    RESEARCHING = "researching"
+    GENERATING_CONTENT = "generating_content"
+    CREATING_DECK = "creating_deck"
+    COMPLETE = "complete"
+    FAILED = "failed"
+
+
 # ── Single Client Input ─────────────────────────────────────────────────────────
 
 class SingleProspect(BaseModel):
@@ -106,17 +117,6 @@ class GammaResult(BaseModel):
     pptx_url: str = ""
     pdf_url: str = ""
     status: str = "pending"
-
-
-# ── Job / Row Status ─────────────────────────────────────────────────────────
-
-class RowStatus(str, Enum):
-    QUEUED = "queued"
-    RESEARCHING = "researching"
-    GENERATING_CONTENT = "generating_content"
-    CREATING_DECK = "creating_deck"
-    COMPLETE = "complete"
-    FAILED = "failed"
 
 
 class RowResult(BaseModel):
