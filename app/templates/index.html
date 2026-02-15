@@ -233,6 +233,10 @@
                     <i data-lucide="user" class="w-4 h-4 inline mr-2"></i>
                     Single Client
                 </button>
+                <button id="tabHistory" onclick="switchTab('history')" class="px-8 py-3 rounded-full font-bold text-sm transition-all tab-inactive">
+                    <i data-lucide="clock" class="w-4 h-4 inline mr-2"></i>
+                    Deck History
+                </button>
             </div>
         </div>
 
@@ -473,6 +477,39 @@
                 </div>
             </div>
         </div>
+
+        <!-- History Section -->
+        <div id="historySection" class="hidden">
+            <div class="bg-white rounded-3xl border border-slate-100 shadow-lg p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-[#011A6B] flex items-center">
+                        <i data-lucide="clock" class="w-5 h-5 mr-2"></i>
+                        Generated Decks
+                    </h3>
+                    <button onclick="loadHistory()" class="text-sm text-[#E8033A] font-semibold hover:underline">
+                        Refresh
+                    </button>
+                </div>
+                <div id="historyLoading" class="hidden text-center py-8 text-slate-400">Loading...</div>
+                <div id="historyEmpty" class="hidden text-center py-8 text-slate-400">
+                    No decks generated yet. Create your first pitch deck above!
+                </div>
+                <div class="overflow-x-auto">
+                    <table id="historyTable" class="w-full hidden">
+                        <thead>
+                            <tr class="border-b border-slate-200">
+                                <th class="text-left py-3 px-4 text-xs font-bold uppercase text-slate-400">Company</th>
+                                <th class="text-left py-3 px-4 text-xs font-bold uppercase text-slate-400">Contact</th>
+                                <th class="text-left py-3 px-4 text-xs font-bold uppercase text-slate-400">Created</th>
+                                <th class="text-left py-3 px-4 text-xs font-bold uppercase text-slate-400">Deck</th>
+                                <th class="text-left py-3 px-4 text-xs font-bold uppercase text-slate-400">PPTX</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
@@ -482,19 +519,31 @@
         function switchTab(tab) {
             const bulkTab = document.getElementById('tabBulk');
             const singleTab = document.getElementById('tabSingle');
+            const historyTab = document.getElementById('tabHistory');
             const bulkSection = document.getElementById('bulkSection');
             const singleSection = document.getElementById('singleSection');
+            const historySection = document.getElementById('historySection');
+
+            const inactiveClass = 'px-8 py-3 rounded-full font-bold text-sm transition-all tab-inactive';
+            const activeClass = 'px-8 py-3 rounded-full font-bold text-sm transition-all tab-active';
+
+            bulkTab.className = inactiveClass;
+            singleTab.className = inactiveClass;
+            historyTab.className = inactiveClass;
+            bulkSection.classList.add('hidden');
+            singleSection.classList.add('hidden');
+            historySection.classList.add('hidden');
 
             if (tab === 'bulk') {
-                bulkTab.className = 'px-8 py-3 rounded-full font-bold text-sm transition-all tab-active';
-                singleTab.className = 'px-8 py-3 rounded-full font-bold text-sm transition-all tab-inactive';
+                bulkTab.className = activeClass;
                 bulkSection.classList.remove('hidden');
-                singleSection.classList.add('hidden');
-            } else {
-                singleTab.className = 'px-8 py-3 rounded-full font-bold text-sm transition-all tab-active';
-                bulkTab.className = 'px-8 py-3 rounded-full font-bold text-sm transition-all tab-inactive';
+            } else if (tab === 'single') {
+                singleTab.className = activeClass;
                 singleSection.classList.remove('hidden');
-                bulkSection.classList.add('hidden');
+            } else if (tab === 'history') {
+                historyTab.className = activeClass;
+                historySection.classList.remove('hidden');
+                loadHistory();
             }
         }
 
@@ -808,6 +857,50 @@
                 document.getElementById(id).style.width = '0%';
             });
             lucide.createIcons();
+        }
+
+        // History tab
+        async function loadHistory() {
+            document.getElementById('historyLoading').classList.remove('hidden');
+            document.getElementById('historyEmpty').classList.add('hidden');
+            document.getElementById('historyTable').classList.add('hidden');
+
+            try {
+                const resp = await fetch('/history?limit=50');
+                const data = await resp.json();
+
+                document.getElementById('historyLoading').classList.add('hidden');
+
+                if (!data.decks || data.decks.length === 0) {
+                    document.getElementById('historyEmpty').classList.remove('hidden');
+                    return;
+                }
+
+                const tbody = document.getElementById('historyTableBody');
+                tbody.innerHTML = '';
+                data.decks.forEach(deck => {
+                    const date = deck.created_at ? new Date(deck.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '---';
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-slate-50 hover:bg-slate-50 transition';
+                    row.innerHTML = `
+                        <td class="py-3 px-4 font-semibold text-[#011A6B]">${deck.company_name}</td>
+                        <td class="py-3 px-4 text-slate-500 text-sm">${deck.contact_name || '---'}</td>
+                        <td class="py-3 px-4 text-slate-500 text-sm">${date}</td>
+                        <td class="py-3 px-4">
+                            ${deck.deck_url ? `<a href="${deck.deck_url}" target="_blank" class="text-[#E8033A] font-semibold hover:underline text-sm">View Deck</a>` : '---'}
+                        </td>
+                        <td class="py-3 px-4">
+                            ${deck.pptx_url ? `<a href="${deck.pptx_url}" target="_blank" class="text-slate-600 hover:underline text-sm">Download</a>` : '---'}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                document.getElementById('historyTable').classList.remove('hidden');
+            } catch (err) {
+                document.getElementById('historyLoading').classList.add('hidden');
+                document.getElementById('historyEmpty').classList.remove('hidden');
+                document.getElementById('historyEmpty').textContent = 'Database not configured. Add DATABASE_URL to enable deck history.';
+            }
         }
     </script>
 </body>

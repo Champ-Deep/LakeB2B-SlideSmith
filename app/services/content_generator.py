@@ -85,7 +85,11 @@ async def map_services(
         f"Format: Just the IDs, nothing else."
     )
 
-    response_text = await _call_openrouter(prompt, max_tokens=1024)
+    response_text = await _call_openrouter(
+        prompt,
+        model=settings.service_mapping_model,
+        max_tokens=settings.service_mapping_max_tokens,
+    )
 
     selected_ids = [
         line.strip().lower()
@@ -167,7 +171,11 @@ NOTES:
 
 Generate all 15 slides now."""
 
-    raw_output = await _call_openrouter(prompt, max_tokens=8192)
+    raw_output = await _call_openrouter(
+        prompt,
+        model=settings.pitch_generation_model,
+        max_tokens=settings.pitch_max_tokens,
+    )
 
     slides = _parse_slides(raw_output)
 

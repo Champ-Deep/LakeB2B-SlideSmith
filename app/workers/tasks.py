@@ -3,7 +3,6 @@ Celery task definitions for the pitch deck pipeline.
 Each Excel row becomes one task processed sequentially.
 """
 import asyncio
-import json
 import time
 import traceback
 
@@ -59,6 +58,53 @@ def _run_async(coro):
         loop.close()
 
 
+def _persist_to_db(job_id, prospect_data, research, pitch_content, gamma_result):
+    """Persist pipeline results to Postgres. Fails silently if DB not configured."""
+    from app.database import async_session
+    from app.db_models import GeneratedDeck, ResearchCache
+    from sqlalchemy import select
+
+    if async_session is None:
+        return
+
+    async def _save():
+        async with async_session() as session:
+            deck = GeneratedDeck(
+                job_id=job_id,
+                company_name=prospect_data.get("company_name", ""),
+                contact_name=prospect_data.get("contact_name", ""),
+                deck_url=gamma_result.url,
+                pptx_url=gamma_result.pptx_url,
+                pdf_url=gamma_result.pdf_url,
+                gamma_id=gamma_result.gamma_id,
+                research_data=research.model_dump(),
+                pitch_content=pitch_content.model_dump(),
+                mapped_services=[s.model_dump() for s in pitch_content.mapped_services],
+            )
+            session.add(deck)
+
+            # Upsert research cache
+            normalized = prospect_data.get("company_name", "").strip().lower()
+            if normalized:
+                existing = await session.execute(
+                    select(ResearchCache).where(
+                        ResearchCache.company_name_normalized == normalized
+                    )
+                )
+                if not existing.scalar_one_or_none():
+                    session.add(ResearchCache(
+                        company_name_normalized=normalized,
+                        research_data=research.model_dump(),
+                    ))
+
+            await session.commit()
+
+    try:
+        _run_async(_save())
+    except Exception:
+        traceback.print_exc()
+
+
 @celery_app.task(bind=True, max_retries=2, default_retry_delay=10)
 def process_prospect(self, prospect_data: dict, job_id: str):
     """
@@ -86,6 +132,9 @@ def process_prospect(self, prospect_data: dict, job_id: str):
         # Step 3: Gamma Deck Creation
         _update_row_status(job_id, row_index, RowStatus.CREATING_DECK)
         gamma_result = _run_async(create_presentation(pitch_content))
+
+        # Persist to Postgres
+        _persist_to_db(job_id, prospect_data, research, pitch_content, gamma_result)
 
         # Step 4: Success
         _update_row_status(
@@ -177,6 +226,9 @@ def process_single_prospect(self, prospect_data: dict, job_id: str):
         # Step 3: Gamma Deck Creation
         _update_row_status(job_id, row_index, RowStatus.CREATING_DECK)
         gamma_result = _run_async(create_presentation(pitch_content))
+
+        # Persist to Postgres
+        _persist_to_db(job_id, prospect_data, research, pitch_content, gamma_result)
 
         # Step 4: Success
         _update_row_status(

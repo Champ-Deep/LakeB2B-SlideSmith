@@ -8,9 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 
 from app.config import ensure_dirs
+from app.database import init_db
 from app.routes.upload import router as upload_router
 from app.routes.status import router as status_router
 from app.routes.single import router as single_router
+from app.routes.themes import router as themes_router
+from app.routes.history import router as history_router
 
 # Create app
 app = FastAPI(
@@ -36,12 +39,15 @@ templates = Jinja2Templates(directory=templates_dir)
 app.include_router(upload_router)
 app.include_router(status_router)
 app.include_router(single_router)
+app.include_router(themes_router)
+app.include_router(history_router)
 
 
 @app.on_event("startup")
 async def startup():
-    """Create required directories on startup."""
+    """Create required directories and initialize database on startup."""
     ensure_dirs()
+    await init_db()
 
 
 @app.get("/")

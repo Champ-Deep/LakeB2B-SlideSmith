@@ -20,6 +20,10 @@ pyyaml==6.0.2
 pydantic==2.10.4
 pydantic-settings==2.7.1
 
+# Database
+sqlalchemy[asyncio]==2.0.36
+asyncpg==0.30.0
+
 # Utilities
 python-dotenv==1.0.1
 tenacity==9.0.0

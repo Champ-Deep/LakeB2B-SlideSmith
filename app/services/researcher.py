@@ -1,12 +1,16 @@
 """
 Company research using Perplexity Sonar via OpenRouter API.
 Implements adaptive depth (quick vs deep) based on data availability.
+Caches research in Postgres to avoid repeat API calls (30-day TTL).
 """
+import datetime
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.config import settings
 from app.models import ProspectRow, CompanyResearch, ResearchDepth
+
+RESEARCH_CACHE_TTL_DAYS = 30
 
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
@@ -74,10 +78,15 @@ async def _query_perplexity(query: str, model: str = "perplexity/sonar") -> str:
 async def research_company(prospect: ProspectRow) -> CompanyResearch:
     """
     Research a company using Perplexity Sonar via OpenRouter.
-    Depth is automatically determined based on available data.
+    Checks Postgres cache first (30-day TTL) to avoid repeat API costs.
     """
+    # Check cache first
+    cached = await _check_research_cache(prospect.company_name)
+    if cached:
+        return cached
+
     depth = determine_research_depth(prospect)
-    model = "perplexity/sonar" if depth == ResearchDepth.QUICK else "perplexity/sonar"
+    model = settings.research_model
 
     company = prospect.company_name
     url_hint = f" (website: {prospect.website_url})" if prospect.website_url else ""
@@ -90,16 +99,13 @@ async def research_company(prospect: ProspectRow) -> CompanyResearch:
             (
                 f"Give me a comprehensive overview of {company}{url_hint}{industry_hint}. "
                 f"Include: what they do, company size, target market, key products/services, "
-                f"and their technology stack (CRM, marketing tools, data platforms they use)."
+                f"technology stack (CRM, marketing tools, data platforms), and any recent "
+                f"news, funding, partnerships, or product launches."
             ),
             (
                 f"What are the top business challenges and pain points for {company}{industry_hint}? "
                 f"Focus on: data quality issues, sales/marketing efficiency, lead generation, "
-                f"technology gaps, and competitive pressures."
-            ),
-            (
-                f"What are the latest news, initiatives, and strategic priorities for {company}? "
-                f"Include any recent funding, partnerships, product launches, or market expansion."
+                f"technology gaps, competitive pressures, and opportunities for B2B data services."
             ),
         ]
     else:
@@ -107,28 +113,19 @@ async def research_company(prospect: ProspectRow) -> CompanyResearch:
             (
                 f"Provide a detailed company overview of {company}{url_hint}{industry_hint}. "
                 f"Include: founding year, headquarters, employee count, revenue range, "
-                f"key leadership, mission, and primary business model."
-            ),
-            (
-                f"What technology stack does {company} use? Include: CRM systems, marketing "
-                f"automation platforms, data/analytics tools, sales enablement tools, "
-                f"cloud infrastructure, and any custom/proprietary technology."
+                f"key leadership, mission, primary business model, and technology stack "
+                f"(CRM, marketing automation, data/analytics, cloud infrastructure)."
             ),
             (
                 f"What are the key business pain points and challenges facing {company}? "
                 f"Focus specifically on: data quality/enrichment needs, SDR productivity, "
                 f"buyer intent visibility, lead scoring accuracy, ABM capabilities, "
-                f"and demand generation effectiveness."
+                f"demand generation effectiveness, and competitive landscape."
             ),
             (
-                f"Describe the competitive landscape for {company}{industry_hint}. "
-                f"Who are their main competitors? What differentiates {company}? "
-                f"Where are they vulnerable competitively?"
-            ),
-            (
-                f"Who are the key buyer personas at {company} that would be involved in "
-                f"purchasing B2B data, sales intelligence, or marketing technology solutions? "
-                f"What are their typical priorities and decision criteria?"
+                f"What are the latest news, strategic priorities, and recent developments "
+                f"for {company}? Also describe the key buyer personas who would purchase "
+                f"B2B data, sales intelligence, or marketing technology solutions."
             ),
         ]
 
@@ -139,18 +136,23 @@ async def research_company(prospect: ProspectRow) -> CompanyResearch:
 
     raw_research = "\n\n---\n\n".join(results)
 
-    return CompanyResearch(
+    research = CompanyResearch(
         company_name=company,
         overview=results[0] if len(results) > 0 else "",
         pain_points=_extract_bullet_points(results[1]) if len(results) > 1 else [],
-        tech_stack=_extract_bullet_points(results[1] if depth == ResearchDepth.QUICK else (results[1] if len(results) > 1 else "")),
+        tech_stack=_extract_bullet_points(results[0]) if len(results) > 0 else [],
         industry_context=results[0] if len(results) > 0 else "",
-        recent_news=results[2] if len(results) > 2 else "",
+        recent_news=results[2] if len(results) > 2 else (results[0] if results else ""),
         opportunities=_extract_bullet_points(results[1]) if len(results) > 1 else [],
-        competitive_landscape=results[3] if depth == ResearchDepth.DEEP and len(results) > 3 else "",
+        competitive_landscape=results[1] if depth == ResearchDepth.DEEP and len(results) > 1 else "",
         depth_used=depth,
         raw_research=raw_research,
     )
+
+    # Save to cache for future lookups
+    await _save_research_cache(company, research)
+
+    return research
 
 
 def _extract_bullet_points(text: str) -> list[str]:
@@ -166,3 +168,56 @@ def _extract_bullet_points(text: str) -> list[str]:
         sentences = [s.strip() for s in text.split(".") if len(s.strip()) > 20]
         points = sentences[:5]
     return points
+
+
+async def _check_research_cache(company_name: str) -> CompanyResearch | None:
+    """Check Postgres cache for existing research. Returns None if not found or expired."""
+    from app.database import async_session
+    from app.db_models import ResearchCache
+    from sqlalchemy import select
+
+    if async_session is None:
+        return None
+
+    normalized = company_name.strip().lower()
+    try:
+        async with async_session() as session:
+            result = await session.execute(
+                select(ResearchCache).where(
+                    ResearchCache.company_name_normalized == normalized
+                )
+            )
+            entry = result.scalar_one_or_none()
+            if entry is None:
+                return None
+
+            # Check TTL
+            age = datetime.datetime.now(datetime.timezone.utc) - entry.created_at.replace(
+                tzinfo=datetime.timezone.utc
+            )
+            if age.days > RESEARCH_CACHE_TTL_DAYS:
+                return None
+
+            return CompanyResearch(**entry.research_data)
+    except Exception:
+        return None
+
+
+async def _save_research_cache(company_name: str, research: CompanyResearch):
+    """Save research results to Postgres cache."""
+    from app.database import async_session
+    from app.db_models import ResearchCache
+
+    if async_session is None:
+        return
+
+    normalized = company_name.strip().lower()
+    try:
+        async with async_session() as session:
+            session.add(ResearchCache(
+                company_name_normalized=normalized,
+                research_data=research.model_dump(),
+            ))
+            await session.commit()
+    except Exception:
+        pass  # Duplicate key or DB error — skip silently
