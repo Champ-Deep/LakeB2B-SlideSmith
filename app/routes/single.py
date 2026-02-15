@@ -15,6 +15,15 @@ from app.workers.tasks import process_single_prospect
 router = APIRouter()
 redis_client = redis.from_url(settings.redis_url, decode_responses=True)
 
+_STAGE_PROGRESS = {
+    RowStatus.QUEUED.value: 0,
+    RowStatus.RESEARCHING.value: 25,
+    RowStatus.GENERATING_CONTENT.value: 50,
+    RowStatus.CREATING_DECK.value: 75,
+    RowStatus.COMPLETE.value: 100,
+    RowStatus.FAILED.value: 100,
+}
+
 
 @router.post("/single")
 async def create_single_prospect(data: SingleProspect):
@@ -96,9 +105,7 @@ async def get_single_status(job_id: str):
         "status": status,
         "completed": completed,
         "failed": failed,
-        "progress_percent": 100 if status == "complete" else (
-            50 if row_data.get("status") in [RowStatus.COMPLETE.value] else 0
-        ),
+        "progress_percent": _STAGE_PROGRESS.get(row_data.get("status", RowStatus.QUEUED.value), 0),
         "current_stage": row_data.get("status", RowStatus.QUEUED.value),
         "deck_url": row_data.get("deck_url", ""),
         "pptx_url": row_data.get("pptx_url", ""),

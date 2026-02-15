@@ -54,7 +54,7 @@ def _format_services_for_prompt(services: list[ServiceDefinition]) -> str:
     return "\n".join(parts)
 
 
-def map_services(
+async def map_services(
     prospect: ProspectRow,
     research: CompanyResearch,
 ) -> list[ServiceDefinition]:
@@ -62,8 +62,6 @@ def map_services(
     Phase 1: Select the top 3 most relevant LakeB2B services for this prospect.
     Uses lightweight keyword matching first, then Claude for nuanced selection.
     """
-    import asyncio
-
     catalog = load_catalog(settings.services_catalog_path)
 
     candidates = match_services(research, prospect.industry, catalog, top_n=5)
@@ -87,9 +85,7 @@ def map_services(
         f"Format: Just the IDs, nothing else."
     )
 
-    response_text = asyncio.get_event_loop().run_until_complete(
-        _call_openrouter(prompt, max_tokens=1024)
-    )
+    response_text = await _call_openrouter(prompt, max_tokens=1024)
 
     selected_ids = [
         line.strip().lower()
@@ -103,7 +99,7 @@ def map_services(
     return selected[:3] if selected else candidates[:3]
 
 
-def generate_pitch(
+async def generate_pitch(
     prospect: ProspectRow,
     research: CompanyResearch,
     selected_services: list[ServiceDefinition] | None = None,
@@ -112,10 +108,8 @@ def generate_pitch(
     Phase 2: Generate complete pitch deck content for Gamma API.
     Returns structured content with slide-by-slide text.
     """
-    import asyncio
-
     if selected_services is None:
-        selected_services = map_services(prospect, research)
+        selected_services = await map_services(prospect, research)
 
     services_text = _format_services_for_prompt(selected_services)
 
@@ -173,9 +167,7 @@ NOTES:
 
 Generate all 15 slides now."""
 
-    raw_output = asyncio.get_event_loop().run_until_complete(
-        _call_openrouter(prompt, max_tokens=8192)
-    )
+    raw_output = await _call_openrouter(prompt, max_tokens=8192)
 
     slides = _parse_slides(raw_output)
 

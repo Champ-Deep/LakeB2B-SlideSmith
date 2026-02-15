@@ -50,8 +50,9 @@ def _update_row_status(job_id: str, row_index: int, status: RowStatus, **extra):
 
 
 def _run_async(coro):
-    """Run an async function from a sync Celery task."""
+    """Run an async function from a sync context (background thread)."""
     loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     try:
         return loop.run_until_complete(coro)
     finally:
@@ -79,7 +80,7 @@ def process_prospect(self, prospect_data: dict, job_id: str):
 
         # Step 2: Content Generation
         _update_row_status(job_id, row_index, RowStatus.GENERATING_CONTENT)
-        pitch_content = generate_pitch(prospect, research)
+        pitch_content = _run_async(generate_pitch(prospect, research))
         time.sleep(2)
 
         # Step 3: Gamma Deck Creation
@@ -170,7 +171,7 @@ def process_single_prospect(self, prospect_data: dict, job_id: str):
 
         # Step 2: Content Generation
         _update_row_status(job_id, row_index, RowStatus.GENERATING_CONTENT)
-        pitch_content = generate_pitch(prospect, research)
+        pitch_content = _run_async(generate_pitch(prospect, research))
         time.sleep(2)
 
         # Step 3: Gamma Deck Creation
