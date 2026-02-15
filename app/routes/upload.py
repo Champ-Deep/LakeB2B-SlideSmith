@@ -1,8 +1,10 @@
 """
 Upload route – handles Excel file upload and job creation.
 """
+import asyncio
 import os
 import uuid
+from functools import partial
 from pathlib import Path
 
 import redis
@@ -11,12 +13,16 @@ from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.config import settings
 from app.models import RowStatus
 from app.services.excel_parser import parse_excel
-from app.workers.tasks import process_prospect, finalize_job, celery_app
-
-from celery import chord
+from app.workers.tasks import process_prospect, finalize_job
 
 router = APIRouter()
 redis_client = redis.from_url(settings.redis_url, decode_responses=True)
+
+
+def _run_batch_pipeline(row_tasks, job_id, saved_path):
+    """Execute row tasks sequentially in a background thread, then finalize."""
+    results = [sig.apply().result for sig in row_tasks]
+    finalize_job.apply(args=[results, job_id, saved_path])
 
 
 @router.post("/upload")
@@ -83,14 +89,17 @@ async def upload_excel(file: UploadFile = File(...)):
             "error": "",
         })
 
-    # Queue tasks using Celery chord (all rows → finalize)
+    # Run tasks in background thread (no separate Celery worker needed)
     row_tasks = [
         process_prospect.s(prospect.model_dump(), job_id)
         for prospect in prospects
     ]
 
-    callback = finalize_job.s(job_id, saved_path)
-    chord(row_tasks)(callback)
+    loop = asyncio.get_running_loop()
+    loop.run_in_executor(
+        None,
+        partial(_run_batch_pipeline, row_tasks, job_id, saved_path),
+    )
 
     return {
         "job_id": job_id,

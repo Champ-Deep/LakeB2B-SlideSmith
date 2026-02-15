@@ -1,7 +1,9 @@
 """
 Single client route – handles individual prospect processing.
 """
+import asyncio
 import uuid
+from functools import partial
 
 import redis
 from fastapi import APIRouter, HTTPException
@@ -55,7 +57,12 @@ async def create_single_prospect(data: SingleProspect):
         "extra_context": _build_extra_context(data),
     }
 
-    process_single_prospect.s(prospect_data, job_id).apply_async()
+    # Run pipeline in background thread (no separate Celery worker needed)
+    loop = asyncio.get_running_loop()
+    loop.run_in_executor(
+        None,
+        partial(process_single_prospect.apply, args=[prospect_data, job_id]),
+    )
 
     return {
         "job_id": job_id,
