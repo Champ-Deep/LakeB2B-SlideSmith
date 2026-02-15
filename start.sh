@@ -6,7 +6,7 @@ source /opt/venv/bin/activate
 # Start Celery worker in background only if Redis is available
 if [ -n "$REDIS_URL" ]; then
     echo "Starting Celery worker..."
-    celery -A app.workers.tasks worker --concurrency=2 --loglevel=info &
+    celery -A app.workers.tasks worker --pool=solo --loglevel=info &
 else
     echo "REDIS_URL not set, skipping Celery worker"
 fi

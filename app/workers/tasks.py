@@ -24,7 +24,7 @@ celery_app.conf.update(
     task_serializer="json",
     result_serializer="json",
     accept_content=["json"],
-    worker_concurrency=1,  # Process one at a time (API rate limits)
+    worker_concurrency=1,  # Solo pool; one task at a time (API rate limits)
     task_acks_late=True,
     worker_prefetch_multiplier=1,
     task_time_limit=600,  # 10 minute hard limit per task
