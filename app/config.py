@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # --- Gamma Config ---
     gamma_theme_id: str = Field(default="", description="Pre-created theme ID in Gamma")
-    gamma_api_base_url: str = Field(default="https://api.gamma.app/api", description="Gamma API base URL")
+    gamma_api_base_url: str = Field(default="https://public-api.gamma.app/v1.0", description="Gamma API v1.0 base URL")
 
     # --- Redis ---
     redis_url: str = Field(default="redis://localhost:6379/0")
